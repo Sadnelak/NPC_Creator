@@ -1,5 +1,6 @@
 package npc.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Aspect {
@@ -16,6 +17,12 @@ public class Aspect {
 	public Aspect(List<Caractere> carac, String nom){
 		this.caracteres = carac;
 		this.name=nom;
+		this.descriptif="";
+		this.selected = false;
+	}
+	public Aspect(){
+		this.caracteres = new ArrayList<Caractere>();
+		this.name="";
 		this.descriptif="";
 		this.selected = false;
 	}
