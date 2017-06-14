@@ -4,6 +4,13 @@ public class Caractere {
 	private Integer proba;
 	private String name;
 	private Aspect ineritedAspect;
+	private boolean selected;
+	public boolean isSelected() {
+		return selected;
+	}
+	public void setSelected(boolean selected) {
+		this.selected = selected;
+	}
 	public Integer getProba() {
 		return proba;
 	}
@@ -24,6 +31,7 @@ public class Caractere {
 		if(list.length >= 2){
 			this.proba = Integer.parseInt(list[0]);
 			this.name = list[1];
+			this.selected=false;
 		}
 		
 	}

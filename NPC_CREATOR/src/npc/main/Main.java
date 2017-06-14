@@ -1,13 +1,19 @@
 package npc.main;
 
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
+import java.awt.LayoutManager;
+import java.awt.LayoutManager2;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -31,16 +37,96 @@ public class Main {
 	
 //	 static JTextField adresseFichier = new JTextField();
 //	 static JTextArea motsTries = new JTextArea();
-	
+	static List<Personna> personalite;
 	public static void main(String [] arg0){
 		JFrame fenetre = new JFrame();
 		JPanel mainPanel = new JPanel();
-		mainPanel.setLayout(new GridLayout(1, 1));
-
-		JPanel panel = new JPanel();
-		List<Personna> personalite=processFile("C:/Users/Felicien/workspace/generateurPersonaliteV1/test/","test.txt");
-		panel.setLayout(new GridLayout(personalite.size(), 1));
+		LayoutManager lay =new GridLayout(1,2);
+		mainPanel.setLayout(lay);
 		
+		JPanel panel = new JPanel();
+		personalite=processFile("C:/Users/Felicien/workspace/generateurPersonaliteV1/test/","test.txt");
+		panel.setLayout(new GridLayout(personalite.size(), 1));
+		setContent(panel);
+		JButton bouton = new JButton("BOUTON !!!!");
+		bouton.setSize(20, 60);
+		bouton.addActionListener(new ActionListener(){
+		  public void actionPerformed(ActionEvent e)
+		  {
+			  launchProba();
+			  selectAllSorted(panel);
+		  }
+
+		
+
+		
+		});
+		mainPanel.add(panel);
+		mainPanel.add(bouton);
+		fenetre.add(mainPanel);
+		fenetre.setSize(840,780);
+		fenetre.setVisible(true);
+	}
+
+	public static void selectAllSorted(JPanel panel) {
+		int nbComp=panel.getComponentCount();
+		//Panel
+		for(int i=0; i< nbComp;i++){
+			Component comp = panel.getComponent(i);
+			//panelPers
+			if(comp.getClass() == JPanel.class){
+				JPanel subPanel = (JPanel) comp;
+				compIsJComboBoxProcess(i, panel);			
+				int nbSubComp=subPanel.getComponentCount();
+				for(int y=0; y< nbSubComp;y++){
+					Component subComp = subPanel.getComponent(y);
+					compIsJComboBoxProcess(y, subPanel);
+
+
+					if(subComp.getClass() == JPanel.class){
+						JPanel sub2Panel = (JPanel) subComp;
+						int nbSub2Comp=subPanel.getComponentCount();
+						for(int z=0; z< nbSub2Comp;z++){
+							compIsJComboBoxProcess(z, sub2Panel);
+						}
+							
+					}
+					
+					
+					
+				}
+					
+			}
+		}
+	}
+
+	private static void compIsJComboBoxProcess(int i, JPanel Panel) {
+		Component finalComp = Panel.getComponent(i);
+		if(finalComp.getClass() == JComboBox.class){
+			@SuppressWarnings("unchecked")
+			JComboBox<String> combo =  (JComboBox<String>) finalComp;
+			JLabel lab = (JLabel) Panel.getComponent(i-1);
+			combo.setSelectedItem(getSelectedCaractere(lab.getText()));
+		}
+	}
+	public static String getSelectedCaractere(String name) {
+
+		for(Personna partPersonna : personalite){
+			for(Aspect asp : partPersonna.getListAspects()){
+				if(asp.getName().equals(name)){
+					for(Caractere carac : asp.getCaractere()){
+						if(carac.isSelected()){
+							return carac.getName();
+						}
+					}
+					
+				}
+			}
+		}
+		return "";
+	}
+
+	private static void setContent(JPanel panel) {
 		for(Personna partPersonna : personalite){
 			JPanel panelPers = new JPanel();
 			panelPers.setLayout(new GridLayout(partPersonna.getListAspects().size()/2+1, 2));
@@ -49,34 +135,51 @@ public class Main {
 			for(Aspect asp : partPersonna.getListAspects()){
 				JComboBox<String> combo = new JComboBox<String>();
 				JLabel labelAspect = new JLabel(asp.getName());
+				combo.addItem("");
+				combo.setSelectedIndex(0);
 				for(Caractere carac : asp.getCaractere()){
 					combo.addItem(carac.getName());
+					if(carac.isSelected()){
+						combo.setSelectedItem(carac.getName());
+					}
 				}
+
 				panelPers.add(labelAspect);
 				panelPers.add(combo);
 			}
-			
-
-//		    panel.add(adresseFichier);
-//		    panel.add(motsTries);
-//			JComboBox petList = new JComboBox();
-//	        Dimension preferredSize = new Dimension(400,25);
-//	        Dimension preferredSizeMotTrie = new Dimension(600,600);
-//	        adresseFichier.setPreferredSize(preferredSize);
-//	        motsTries.setPreferredSize(preferredSizeMotTrie);
-		    panel.add(panelPers);
+			panel.add(panelPers);
 		    
 		}
-		JButton bouton = new JButton("BOUTON !!!!");
-		mainPanel.add(panel);
-		mainPanel.add(bouton);
-		fenetre.add(mainPanel);
-		fenetre.setSize(840,780);
-		fenetre.setVisible(true);
 	}
 	
 	
-	
+	public static void launchProba(){
+		
+		for(Personna pers : personalite){
+			for(Aspect asp : pers.getListAspects()){
+				if(!asp.isSelected()){
+					int randomMax =0;
+					for(Caractere carac : asp.getCaractere()){
+						randomMax+=carac.getProba().intValue();
+					}
+					
+				    Random rn = new Random();
+				    int nbRandom = rn.nextInt(randomMax+1);
+				    int verif = 0;
+					boolean verifie = false;
+					for(Caractere carac : asp.getCaractere()){
+						verif+=carac.getProba().intValue();
+						if(!verifie && verif >= nbRandom){
+							carac.setSelected(true);
+							verifie = true;
+						}else{
+							carac.setSelected(false);
+						}
+					}
+				}
+			}
+		}
+	}
 	
 	
 	
